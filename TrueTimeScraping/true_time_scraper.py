@@ -84,9 +84,9 @@ class VehicleScraper:
     def collect_data_each_minute(self): # Time limit of 5 minutes, so 5 collections
         count = 0
         # Keeps only route name from file, not interested in hand collected data anymore
-        vehicle_counts_main = pd.read_csv('data/vehicles_per_route_estimates.csv')[['Route']]
+        vehicle_counts_main = pd.read_csv(r'C:\Users\Ethan Shearer\VSCodeProjects\TrueTimeScraping\data\vehicles_per_route_estimates.csv')[['Route']]
         
-        while count < 5:
+        while count < 10:
             df = self.get_curr_vehicle_counts()
             df[df['collection_stamp'][0]] = df['bus_count']
             df = df.drop(columns=['timestamp', 'bus_count', 'collection_stamp'])
@@ -158,6 +158,13 @@ class TripScraper:
                 'stop_id':stop_ids, 'time':times, 'stop_sequence':stop_sequences})
 
 if __name__ == "__main__":
-    scraper = VehicleScraper()
-    df = scraper.collect_data_each_minute()
-    df.to_csv('data/true_time_data.csv', mode='a')
+    try:
+        full_data = pd.read_csv(r'C:\Users\Ethan Shearer\VSCodeProjects\TrueTimeScraping\data\true_time_data.csv')
+        scraper = VehicleScraper()
+        df = scraper.collect_data_each_minute()
+        df = pd.merge(full_data, df, on='Route').set_index('Route')
+    except:
+        scraper = VehicleScraper()
+        df = scraper.collect_data_each_minute().set_index('Route')
+    # Add data to already existing file (needs fixed)
+    df.to_csv(r'C:\Users\Ethan Shearer\VSCodeProjects\TrueTimeScraping\data\true_time_data.csv', mode='w')
